@@ -1,0 +1,452 @@
+<title>AURA Advisory</title>
+<meta name="description" content="Product, growth and team architecture partner for seed and Series A startups.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Geist:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="scrollcraft.css">
+<style>
+/* World: Kirlian corona plates shot through a telescope. One continuous flight.
+   Layout: copy holds a lead column over a column scrim; the map rail holds the right edge;
+   the aura sensor (pointer) is the nearest plane. */
+:root{
+  --sc-canvas:#07050d; --sc-surface:#130c21;
+  --sc-ink:#f5f0fc; --sc-ink-soft:#c3b6da;
+  --sc-accent:#c766ff; --sc-accent-ink:#13061f;
+  --sc-font-display:"Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --sc-font-text:"Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --line:color-mix(in oklab, var(--sc-ink) 18%, transparent);
+  --line-2:color-mix(in oklab, var(--sc-ink) 30%, transparent);
+  --col: min(44rem, 52vw);
+  color-scheme:dark;
+}
+html,body{background:var(--sc-canvas);color:var(--sc-ink)}
+::selection{background:var(--sc-accent);color:var(--sc-accent-ink)}
+:focus-visible{outline:2px solid var(--sc-accent);outline-offset:3px;border-radius:4px}
+
+/* ---------- chrome: wordmark, one CTA, the map ---------- */
+.bar{position:fixed;inset:0 0 auto 0;z-index:70;display:flex;align-items:center;justify-content:space-between;gap:var(--sc-4);
+  padding:calc(env(safe-area-inset-top,0px) + var(--sc-4)) var(--sc-gutter) var(--sc-4);pointer-events:none}
+.bar > *{pointer-events:auto}
+.mark{display:flex;align-items:baseline;gap:.6rem;text-decoration:none;color:var(--sc-ink)}
+.mark b{font-family:var(--sc-font-display);font-weight:700;font-size:1.35rem;letter-spacing:.18em;font-variation-settings:"wdth" 100}
+.mark span{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--sc-ink-soft)}
+.cta{display:inline-flex;align-items:center;gap:.6rem;min-height:44px;padding:.7rem 1.15rem;border-radius:6px;background:var(--sc-accent);color:var(--sc-accent-ink);
+  font-weight:600;font-size:.92rem;text-decoration:none;white-space:nowrap;border:0;cursor:pointer;
+  box-shadow:0 2px 4px hsl(270 60% 3% / .4),0 10px 24px -8px hsl(270 60% 3% / .6);transition:transform 140ms var(--sc-ease-out),background-color 140ms var(--sc-ease-out)}
+.cta:hover{background:#d488ff}.cta:active{transform:translateY(1px) scale(.98)}
+.cta--ghost{background:transparent;color:var(--sc-ink);border:1px solid var(--line-2);box-shadow:none}
+.cta--ghost:hover{background:color-mix(in oklab,var(--sc-accent) 14%,transparent)}
+
+.map{position:fixed;right:var(--sc-gutter);top:50%;transform:translateY(-50%);z-index:70;list-style:none;margin:0;padding:0;display:grid;gap:.35rem}
+.map a{display:grid;grid-template-columns:auto 1rem;align-items:center;gap:.75rem;justify-items:end;min-height:34px;text-decoration:none;color:var(--sc-ink-soft);
+  font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;transition:color 160ms var(--sc-ease-out)}
+.map a i{width:9px;height:9px;border-radius:50%;border:1px solid currentColor;justify-self:center;transition:transform 200ms var(--sc-ease-out),background-color 200ms}
+.map a:hover{color:var(--sc-ink)}
+.map a[aria-current="true"]{color:var(--sc-ink)}
+.map a[aria-current="true"] i{background:var(--sc-accent);border-color:var(--sc-accent);transform:scale(1.35)}
+.map .depth{font-variant-numeric:tabular-nums;color:var(--sc-ink-soft);font-size:.7rem;letter-spacing:.1em;text-align:right;margin-top:.6rem;text-transform:uppercase}
+
+/* ---------- world planes ---------- */
+#dust,#sensor{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+#dust{z-index:4}
+#sensor{z-index:65}
+.latent{position:fixed;inset:0;z-index:64;pointer-events:none;
+  -webkit-mask-image:radial-gradient(circle 150px at var(--mx,-999px) var(--my,-999px),#000 35%,transparent 72%);
+  mask-image:radial-gradient(circle 150px at var(--mx,-999px) var(--my,-999px),#000 35%,transparent 72%)}
+.latent p{position:absolute;margin:0;font-family:var(--sc-font-display);font-variation-settings:"wdth" 80;font-weight:600;
+  font-size:clamp(1.3rem,2.2vw,2.1rem);line-height:1.05;letter-spacing:-.01em;color:#efe2ff;opacity:0;transition:opacity 300ms var(--sc-ease-out);max-width:16ch}
+.latent p small{display:block;font-family:var(--sc-font-text);font-weight:500;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#d9c2ff;margin-top:.4rem}
+.latent p.on{opacity:1}
+.probe{position:fixed;z-index:66;pointer-events:none;left:0;top:0;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sc-ink-soft);
+  display:flex;align-items:center;gap:.5rem;opacity:0;transition:opacity 200ms}
+.probe s{display:block;width:44px;height:3px;background:var(--line);text-decoration:none;position:relative;overflow:hidden;border-radius:2px}
+.probe s::after{content:"";position:absolute;inset:0;background:var(--sc-accent);transform-origin:0 50%;transform:scaleX(var(--sig,0))}
+@media not ((hover:hover) and (pointer:fine)){ .latent,.probe,#sensor{display:none} }
+@media (prefers-reduced-motion:reduce){ .latent,.probe,#sensor,#dust{display:none} }
+
+/* ---------- copy layer ---------- */
+.scrim-col{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(90deg, rgb(7 5 13 / .92) 0%, rgb(7 5 13 / .84) calc(var(--col) + 2rem), rgb(7 5 13 / .4) calc(var(--col) + 9rem), transparent calc(var(--col) + 18rem))}
+.w{position:absolute;left:var(--sc-gutter);top:50%;translate:0 -50%;width:var(--col);z-index:1}
+.w--low{top:auto;bottom:clamp(2rem,8vh,5rem);translate:none}
+.kick{font-size:.78rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--sc-ink-soft);margin:0 0 var(--sc-4)}
+.d{font-family:var(--sc-font-display);font-weight:700;letter-spacing:-.025em;line-height:.95;margin:0;text-wrap:balance;font-variation-settings:"wdth" 82}
+.d--hero{font-size:clamp(3rem,6vw,5.6rem)}
+.d--xl{font-size:clamp(2.4rem,5vw,4.8rem)}
+.d--lg{font-size:clamp(2rem,3.6vw,3.4rem)}
+.d em{font-style:normal;font-weight:300;font-variation-settings:"wdth" 100}
+.lede{font-size:clamp(1.05rem,1.1vw + .6rem,1.3rem);line-height:1.5;color:var(--sc-ink-soft);max-width:46ch;margin:var(--sc-5) 0 0;text-wrap:pretty}
+.row{display:flex;flex-wrap:wrap;gap:var(--sc-3);margin-top:var(--sc-6)}
+.small{font-size:.92rem;color:var(--sc-ink-soft);line-height:1.55}
+
+.figs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-top:var(--sc-7);border-top:1px solid var(--line)}
+.figs div{padding:var(--sc-4) var(--sc-4) 0 0;min-width:0}
+.figs b{display:block;font-family:var(--sc-font-display);font-weight:700;font-size:clamp(2rem,3.4vw,3.2rem);line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums lining-nums;font-variation-settings:"wdth" 80}
+.figs span{display:block;font-size:.84rem;line-height:1.4;color:var(--sc-ink-soft);margin-top:.5rem}
+
+.bars{list-style:none;margin:var(--sc-6) 0 0;padding:0;display:grid;gap:.55rem;max-width:34rem}
+.bars li{display:grid;grid-template-columns:11rem 1fr 3rem;gap:var(--sc-4);align-items:center;font-size:.92rem}
+.bars i{display:block;height:6px;background:var(--line);border-radius:3px;position:relative;overflow:hidden}
+.bars i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--v);background:var(--sc-accent);border-radius:3px}
+.bars li.dim i::after{background:var(--sc-ink-soft);opacity:.5}
+.bars b{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.bars small{grid-column:1/-1;color:var(--sc-ink-soft);font-size:.78rem}
+
+.fusion{left:50%;translate:-50% 0;width:min(56rem,90vw);text-align:center;top:auto;bottom:clamp(3rem,13vh,8rem)}
+.fusion .d{font-size:clamp(2.2rem,5.4vw,5.2rem)}
+
+.pr{display:grid;grid-template-columns:1fr 1fr;gap:var(--sc-6) var(--sc-6);margin-top:var(--sc-6)}
+.pr h3{font-family:var(--sc-font-display);font-weight:600;font-size:1.35rem;letter-spacing:-.01em;margin:0 0 .4rem;font-variation-settings:"wdth" 90}
+.pr p{margin:0;color:var(--sc-ink-soft);font-size:.96rem;line-height:1.55}
+
+.stages{list-style:none;margin:var(--sc-5) 0 0;padding:0;display:grid;gap:0;border-top:1px solid var(--line)}
+.stages li{display:grid;grid-template-columns:2.4rem 12.5rem 1fr;gap:var(--sc-3);align-items:baseline;padding:.7rem 0;border-bottom:1px solid var(--line)}
+.stages b{font-family:var(--sc-font-display);font-weight:700;font-size:1.25rem;color:var(--sc-accent);font-variant-numeric:tabular-nums}
+.stages strong{font-weight:600;font-size:1.02rem}
+.stages span{color:var(--sc-ink-soft);font-size:.9rem;line-height:1.45}
+.verdict{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin-top:var(--sc-4);font-size:.9rem;color:var(--sc-ink-soft)}
+.verdict strong{color:var(--sc-ink);font-weight:600}
+
+.qs{list-style:none;margin:var(--sc-5) 0 0;padding:0;display:grid;gap:.6rem}
+.qs li{font-family:var(--sc-font-display);font-weight:400;font-size:clamp(1.15rem,1.6vw,1.5rem);line-height:1.2;letter-spacing:-.01em;font-variation-settings:"wdth" 90;padding-left:1rem;border-left:1px solid var(--line-2)}
+.cycle{display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin-top:var(--sc-5);font-weight:600}
+.cycle span+span::before{content:"→";color:var(--sc-accent);margin-right:.9rem;font-weight:400}
+
+.cases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sc-5);margin-top:var(--sc-6)}
+.cases h3{font-family:var(--sc-font-display);font-weight:700;font-size:1.6rem;margin:0;letter-spacing:-.01em;font-variation-settings:"wdth" 85}
+.cases .k{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sc-ink-soft);margin:.2rem 0 .6rem}
+.cases dl{margin:0;display:grid;gap:.25rem}
+.cases dl div{display:flex;gap:.6rem;align-items:baseline;border-top:1px solid var(--line);padding-top:.35rem}
+.cases dt{font-weight:600;font-variant-numeric:tabular-nums;min-width:4rem}
+.cases dd{margin:0;color:var(--sc-ink-soft);font-size:.86rem;line-height:1.35}
+
+.offers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sc-4);margin-top:var(--sc-5)}
+.offers article{padding:var(--sc-4);border-radius:6px;background:rgb(19 12 33 / .72);box-shadow:inset 0 1px 0 color-mix(in oklab,var(--sc-ink) 10%,transparent);min-width:0}
+.offers article.on{background:rgb(52 22 82 / .78)}
+.offers h3{font-family:var(--sc-font-display);font-weight:700;font-size:1.2rem;margin:0 0 .5rem;font-variation-settings:"wdth" 88}
+.offers p{margin:0;font-size:.84rem;line-height:1.45;color:var(--sc-ink-soft)}
+.offers p b{color:var(--sc-ink);font-weight:600}
+.fee{margin-top:var(--sc-5);font-size:1.02rem;line-height:1.5;max-width:46ch}
+.fee strong{font-weight:600}
+
+.paths{list-style:none;margin:var(--sc-5) 0 0;padding:0;display:grid;gap:.5rem}
+.paths li{display:grid;grid-template-columns:1fr;gap:.1rem;padding:.55rem 0;border-bottom:1px solid var(--line)}
+.paths strong{font-weight:600}
+.paths span{color:var(--sc-ink-soft);font-size:.88rem;line-height:1.45}
+form{margin-top:var(--sc-5);display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+form label{display:grid;gap:.3rem;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sc-ink-soft);min-width:0}
+form .full{grid-column:1/-1}
+input,select{font:inherit;font-size:1rem;letter-spacing:0;text-transform:none;color:var(--sc-ink);background:rgb(19 12 33 / .85);border:1px solid var(--line-2);border-radius:6px;padding:.65rem .8rem;min-height:44px;width:100%;min-width:0}
+input:focus,select:focus{outline:2px solid var(--sc-accent);outline-offset:1px}
+select option{background:#130c21}
+.note{grid-column:1/-1;font-size:.9rem;margin:0;color:#ead9ff}
+.foot{margin-top:var(--sc-5);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sc-ink-soft)}
+
+/* ---------- phones ---------- */
+@media (max-width:860px){
+  :root{--col:auto}
+  .scrim-col{background:linear-gradient(0deg, rgb(7 5 13 / .95) 0%, rgb(7 5 13 / .86) 58%, rgb(7 5 13 / .3) 80%, transparent 92%)}
+  .w{left:var(--sc-gutter);right:var(--sc-gutter);width:auto;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 1.25rem);translate:none}
+  .fusion{left:var(--sc-gutter);right:var(--sc-gutter);width:auto;translate:none}
+  .d--hero{font-size:clamp(2.6rem,12vw,3.6rem)}
+  .d--xl{font-size:2.2rem}.d--lg{font-size:1.8rem}
+  .lede{font-size:1rem;margin-top:var(--sc-3)}
+  .row{margin-top:var(--sc-4)}
+  .figs{grid-template-columns:1fr 1fr;margin-top:var(--sc-4)}
+  .figs b{font-size:1.8rem}.figs span{font-size:.78rem;margin-top:.25rem}.figs div{padding-top:.6rem}
+  .bars{margin-top:var(--sc-4);gap:.4rem}.bars li{grid-template-columns:8.5rem 1fr 2.6rem;font-size:.82rem;gap:.6rem}
+  .pr{grid-template-columns:1fr;gap:.8rem;margin-top:var(--sc-4)}.pr h3{font-size:1.05rem;margin:0}.pr p{font-size:.84rem}
+  .stages li{grid-template-columns:1.8rem 1fr;padding:.45rem 0}.stages li span{grid-column:2;font-size:.8rem}.stages strong{font-size:.92rem}
+  .qs li{font-size:1rem}.qs{gap:.4rem;margin-top:var(--sc-3)}
+  .cases{grid-template-columns:1fr;gap:.7rem;margin-top:var(--sc-4)}.cases h3{font-size:1.2rem}.cases .k{margin:0 0 .25rem}
+  .cases dl{grid-template-columns:repeat(3,minmax(0,1fr));display:grid;gap:.4rem}.cases dl div{display:block}.cases dt{min-width:0}.cases dd{font-size:.72rem}
+  .offers{grid-template-columns:1fr;gap:.5rem}.offers article{padding:.65rem .8rem}.offers p{font-size:.78rem}
+  .fee{font-size:.88rem;margin-top:var(--sc-3)}
+  .paths{display:none}
+  form{grid-template-columns:1fr;gap:.5rem;margin-top:var(--sc-4)}
+  .map{display:none}
+  .bar .mark span{display:none}
+  .cta{padding:.6rem .9rem;font-size:.86rem}
+}
+@media (max-height:760px) and (min-width:861px){
+  .figs{margin-top:var(--sc-5)} .pr{gap:var(--sc-4)} .cases,.offers{margin-top:var(--sc-4)}
+}
+</style>
+
+<span data-sc-progress></span>
+<div class="sc-grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <a class="mark" href="#top" data-go="0" aria-label="AURA Advisory, back to the start"><b>AURA</b><span>Venture Intelligence</span></a>
+  <a class="cta" href="#start" data-go="finale">Book an audit call</a>
+</header>
+
+<nav aria-label="Route through the field">
+  <ol class="map" id="map">
+{{MAPITEMS}}
+    <li class="depth" aria-hidden="true">depth <span id="depth">0.00</span></li>
+  </ol>
+</nav>
+
+<canvas id="dust" aria-hidden="true"></canvas>
+
+<main id="top" data-sc-mode="worldflight" data-sc-seam="0.16" data-sc-lerp="0.12">
+  <div data-sc-world>
+{{SEGMENTS}}
+  </div>
+
+  <div data-sc-world-copy>
+    <div class="sc-world__scrim scrim-col" aria-hidden="true"></div>
+
+    <section class="w" data-sc-copy data-sc-window="hero" aria-labelledby="h-hero">
+      <p class="kick">AURA Advisory · Venture Intelligence</p>
+      <h1 class="d d--hero" id="h-hero">Intelligence behind investment.</h1>
+      <p class="lede">Know more. Risk less. Product, growth and team architecture for seed and Series A startups.</p>
+      <div class="row"><a class="cta" href="#start" data-go="finale">Book an audit call</a></div>
+    </section>
+
+    <section class="w" data-sc-copy data-sc-window="{{who}}" aria-labelledby="h-who">
+      <h2 class="d d--xl" id="h-who">Designed by consultants. <em>Built by traders.</em></h2>
+      <p class="lede">Senior in-house growth operators from venture-backed startups across logistics, delivery, dating, fintech, payments and health-tech. We've owned the metrics we now come to fix.</p>
+      <div class="figs">
+        <div><b>8+</b><span>years scaling venture-backed startups</span></div>
+        <div><b>$15M</b><span>paid spend managed in-house</span></div>
+        <div><b>2.75×</b><span>average LTV/CAC lift</span></div>
+        <div><b>10+</b><span>startups scaled past key milestones</span></div>
+      </div>
+    </section>
+
+    <section class="w" data-sc-copy data-sc-window="{{split}}" aria-labelledby="h-split">
+      <h2 class="d d--xl" id="h-split">Two fields. <em>Different priorities, disconnected decisions.</em></h2>
+      <p class="lede">84% of investors and founders end up picking between bad options. Most startups that fail, fail on something a plan could have caught.</p>
+      <ul class="bars" aria-label="Startup failure reasons">
+        <li><span>Lack of product demand</span><i style="--v:100%"></i><b>34%</b></li>
+        <li><span>Marketing problems</span><i style="--v:64.7%"></i><b>22%</b></li>
+        <li><span>Team problems</span><i style="--v:52.9%"></i><b>18%</b></li>
+        <li><span>Financial problems</span><i style="--v:47.1%"></i><b>16%</b></li>
+        <li class="dim"><span>Other</span><i style="--v:29.4%"></i><b>10%</b></li>
+      </ul>
+    </section>
+
+    <section class="w fusion" data-sc-copy data-sc-window="{{fusion}}" aria-labelledby="h-fusion">
+      <h2 class="d" id="h-fusion">Two sides of the same growth plan.</h2>
+      <p class="lede" style="margin-inline:auto">Product, growth and team architecture connect founder execution with investor goals.</p>
+    </section>
+
+    <section class="w" data-sc-copy data-sc-window="{{think}}" aria-labelledby="h-think">
+      <h2 class="d d--lg" id="h-think">Your Product, Growth and Team Architecture partner.</h2>
+      <div class="pr">
+        <div><h3>Economics led</h3><p>We start with unit economics, not media plans. If the LTV/CAC math doesn't work, we tell you before you spend a dollar.</p></div>
+        <div><h3>Test before scale</h3><p>Two or three channels, real tests, and what fails is killed fast. No spray-and-pray budgets.</p></div>
+        <div><h3>Accelerating growth</h3><p>Fast iteration across creatives, funnels and channels turns early signals into repeatable growth.</p></div>
+        <div><h3>Aligned on outcomes</h3><p>A base fee covers the team. The upside is a share of the incremental revenue we create.</p></div>
+      </div>
+    </section>
+
+    <section class="w" data-sc-copy data-sc-window="{{method}}" aria-labelledby="h-method">
+      <h2 class="d d--lg" id="h-method">A 5-stage operating system for paid growth.</h2>
+      <ol class="stages">
+        <li><b>1</b><strong>Growth Foundation</strong><span>Unit economics, ICP and funnel audit, tracking review. 2 to 3 weeks, ending in a written Go / No-Go.</span></li>
+        <li><b>2</b><strong>Acquisition Engine</strong><span>2 to 3 channels, a creative factory of 5 to 8 angles per cycle, daily media buying.</span></li>
+        <li><b>3</b><strong>Data Infrastructure</strong><span>Tracking plan, experiment standards, D1/D7/D30 cohorts, LTV and payback model.</span></li>
+        <li><b>4</b><strong>Product Growth Loop</strong><span>Onboarding, retention loops, pricing and trial tests, 10 to 15 customer interviews.</span></li>
+        <li><b>5</b><strong>Scale Strategy</strong><span>Stop/go rules, geo expansion, hiring plan, an investor-ready metrics pack.</span></li>
+      </ol>
+      <p class="verdict"><span>Stage 1 delivers:</span><strong>Growth Audit deck</strong><strong>KPI tree</strong><strong>Experiment backlog</strong><strong>Live CEO dashboard</strong></p>
+    </section>
+
+    <section class="w" data-sc-copy data-sc-window="{{team}}" aria-labelledby="h-team">
+      <h2 class="d d--lg" id="h-team">Your next stage of growth needs the next version of your team.</h2>
+      <ul class="qs">
+        <li>You have a growth plan. Do you have a team to deliver it?</li>
+        <li>The team that got you here may not be the team that gets you there.</li>
+        <li>Are you scaling your business, or just scaling your problems?</li>
+      </ul>
+      <p class="cycle" aria-label="Team architecture cycle"><span>Assess</span><span>Design</span><span>Build</span><span>Optimize</span></p>
+      <p class="small" style="margin-top:.8rem">Leadership due diligence, capability gaps, org design and a strategic hiring roadmap. Tools: Hogan, Gallup, Information Metabolism, ICF coaching, DACI/RACI.</p>
+    </section>
+
+    <section class="w" data-sc-copy data-sc-window="{{cases}}" aria-labelledby="h-cases">
+      <h2 class="d d--lg" id="h-cases">Recent readings.</h2>
+      <div class="cases">
+        <article><h3>Culinara</h3><p class="k">Investment readiness</p><dl>
+          <div><dt>$12M</dt><dd>target ARR by year 3</dd></div><div><dt>4.2×</dt><dd>CAC/LTV framework</dd></div><div><dt>25%</dt><dd>target share in core segments</dd></div></dl></article>
+        <article><h3>Flirtu</h3><p class="k">Growth &amp; scale</p><dl>
+          <div><dt>3</dt><dd>new markets</dd></div><div><dt>−28%</dt><dd>CAC</dd></div><div><dt>+42%</dt><dd>ROAS</dd></div></dl></article>
+        <article><h3>Worksection</h3><p class="k">Product growth</p><dl>
+          <div><dt>+22%</dt><dd>trial-to-paid</dd></div><div><dt>+41%</dt><dd>activation rate</dd></div><div><dt>−19%</dt><dd>CAC</dd></div></dl></article>
+      </div>
+    </section>
+
+    <section class="w" data-sc-copy data-sc-window="{{engage}}" aria-labelledby="h-engage">
+      <h2 class="d d--lg" id="h-engage">Three ways to work with AURA.</h2>
+      <div class="offers">
+        <article><h3>Growth Diagnostic</h3><p>When you're unsure paid scale is viable. <b>Stage 1, 2 to 3 weeks,</b> fixed scope.</p></article>
+        <article class="on"><h3>Growth Partnership</h3><p>When you have signal and want to scale without burning cash. <b>Stages 1 to 4, 6 months minimum,</b> base fee plus revenue share.</p></article>
+        <article><h3>Scale Sprint</h3><p>When you need geo, channels or fundraising prep. <b>Stage 5, 3 months,</b> base fee plus outcome bonus.</p></article>
+      </div>
+      <p class="fee"><strong>You pay a base fee plus a % of incremental revenue,</strong> measured against a cohort baseline agreed before we start, with a minimum and maximum set upfront.</p>
+    </section>
+
+    <section class="w" id="start" data-sc-copy data-sc-window="{{finale}}" aria-labelledby="h-start">
+      <h2 class="d d--xl" id="h-start">Start at the core.</h2>
+      <ul class="paths">
+        <li><strong>Free growth audit call</strong><span>60 minutes on your funnel. You leave with 3 things to change. Zero commitment.</span></li>
+        <li><strong>Run a diagnostic</strong><span>2 to 3 weeks, full unit economics audit and a Go / No-Go. Often paid for by the first experiment.</span></li>
+        <li><strong>Investor or accelerator intro</strong><span>Back venture-stage startups? A partner call on portfolio benefits and references.</span></li>
+      </ul>
+      <form id="lead" method="post" action="#" novalidate>
+        <label for="f-name">Name<input id="f-name" name="name" autocomplete="name" required></label>
+        <label for="f-email">Work email<input id="f-email" name="email" type="email" autocomplete="email" required></label>
+        <label class="full" for="f-path">I want to<select id="f-path" name="path">
+          <option>Book a free growth audit call</option><option>Run a diagnostic</option><option>Set up an investor or accelerator intro</option></select></label>
+        <div class="full"><button class="cta" type="submit">Book an audit call</button></div>
+        <p class="note" id="f-note" role="status" hidden></p>
+      </form>
+      <p class="foot">AURA Advisory · Know more. Risk less. · © 2026</p>
+    </section>
+  </div>
+
+  <div data-sc-spacer aria-hidden="true"></div>
+</main>
+
+<div class="latent" id="latent" aria-hidden="true">
+{{LATENT}}
+</div>
+<div class="probe" id="probe" aria-hidden="true">signal <s></s></div>
+<canvas id="sensor" aria-hidden="true"></canvas>
+
+<script src="scrollcraft.js"></script>
+<script>
+(function(){
+  document.documentElement.setAttribute('data-sc-lerp','0.12');
+  var sc = window.__sc = ScrollCraft.mount(document.body, {});
+  function relayout(){ dispatchEvent(new Event('resize')); }
+  addEventListener('load', relayout);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+  setTimeout(relayout, 400);
+
+  var world = document.querySelector('[data-sc-mode="worldflight"]');
+  var W = sc && sc.worlds && sc.worlds[0];
+  var reduce = ScrollCraft.reduce;
+  var fine = matchMedia('(hover:hover) and (pointer:fine)').matches && !reduce;
+
+  /* ---- map rail: the nav is the route ---- */
+  var mapLinks = [].slice.call(document.querySelectorAll('#map a'));
+  var depth = document.getElementById('depth');
+  function trackTop(){ return world.getBoundingClientRect().top + scrollY; }
+  function goTo(t){ // t in viewport-heights along the track
+    window.scrollTo({ top: trackTop() + t * innerHeight, behavior: reduce ? 'auto' : 'smooth' });
+  }
+  var FINALE = {{FINALE_T}};
+  document.querySelectorAll('[data-go]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var g = a.getAttribute('data-go');
+      var t = g === 'finale' ? FINALE : parseFloat(g);
+      goTo(t);
+      if (g === 'finale') setTimeout(function(){ var f=document.getElementById('f-name'); f && f.focus({preventScroll:true}); }, reduce ? 50 : 1400);
+    });
+  });
+  addEventListener('sc:waypoint', function(e){
+    mapLinks.forEach(function(a){ a.setAttribute('aria-current', String(+a.dataset.leg === e.detail.index)); });
+    latentFor(e.detail.index);
+  });
+  addEventListener('scroll', function(){
+    var t = (scrollY - trackTop()) / innerHeight;
+    if (depth) depth.textContent = Math.max(0, t).toFixed(2);
+  }, { passive:true });
+
+  /* ---- form: honest outcome, nothing is sent ---- */
+  var form = document.getElementById('lead'), note = document.getElementById('f-note');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var n = form.name.value.trim(), m = form.email.value.trim();
+    note.hidden = false;
+    if (!n || !/^\S+@\S+\.\S+$/.test(m)) { note.textContent = 'Add your name and a valid work email.'; return; }
+    note.textContent = 'Thanks, ' + n.split(' ')[0] + '. This preview is not connected to an inbox yet, so nothing was sent.';
+  });
+
+  /* ---- dust: an atmosphere plane between the world and the copy ---- */
+  var dust = document.getElementById('dust'), dctx = dust.getContext('2d');
+  var DPR = Math.min(devicePixelRatio || 1, 1.75), motes = [], mx = .5, my = .5, tmx = .5, tmy = .5;
+  function sizeCanvas(c){ c.width = innerWidth * DPR; c.height = innerHeight * DPR; }
+  function seedDust(){ motes = []; var n = innerWidth < 860 ? 60 : 140;
+    for (var i=0;i<n;i++) motes.push({x:Math.random(),y:Math.random(),z:.3+Math.random()*.7,r:Math.random()}); }
+  sizeCanvas(dust); seedDust();
+
+  /* ---- the aura sensor: signature move ---- */
+  var sensor = document.getElementById('sensor'), sctx = sensor.getContext('2d');
+  var latent = document.getElementById('latent'), probe = document.getElementById('probe');
+  var latentEls = [].slice.call(latent.querySelectorAll('p'));
+  var px = -999, py = -999, spx = -999, spy = -999, inside = false, sig = 0, vel = 0, lastX = 0, lastY = 0;
+  sizeCanvas(sensor);
+  addEventListener('resize', function(){ sizeCanvas(dust); sizeCanvas(sensor); seedDust(); });
+  function latentFor(k){ latentEls.forEach(function(p){ p.classList.toggle('on', +p.dataset.leg === k); }); }
+  latentFor(0);
+  if (fine) {
+    addEventListener('pointermove', function(e){
+      px = e.clientX; py = e.clientY; inside = true;
+      tmx = px / innerWidth; tmy = py / innerHeight;
+      vel = Math.min(1, vel + Math.hypot(px-lastX, py-lastY) / 400); lastX = px; lastY = py;
+    }, { passive:true });
+    document.addEventListener('pointerleave', function(){ inside = false; });
+  }
+
+  function signalAt(x, y){
+    var best = 0;
+    latentEls.forEach(function(p){
+      if (!p.classList.contains('on')) return;
+      var r = p.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
+      var d = Math.hypot(cx - x, cy - y);
+      best = Math.max(best, 1 - Math.min(1, d / 420));
+    });
+    return best;
+  }
+
+  var t0 = performance.now();
+  function frame(now){
+    var t = (now - t0) / 1000;
+    mx += (tmx - mx) * .06; my += (tmy - my) * .06;
+    // dust: deeper motes move less with the pointer, nearer ones more
+    dctx.clearRect(0,0,dust.width,dust.height);
+    for (var i=0;i<motes.length;i++){
+      var m = motes[i];
+      m.y -= .00012 * m.z; if (m.y < -.02) m.y = 1.02;
+      var x = (m.x + (mx-.5) * -.05 * m.z) * dust.width, y = (m.y + (my-.5) * -.035 * m.z) * dust.height;
+      dctx.fillStyle = 'rgba(214,180,255,' + (.10 + .35 * m.z * (.5+.5*Math.sin(t*.8 + m.r*20))).toFixed(3) + ')';
+      dctx.beginPath(); dctx.arc(x, y, (.5 + m.z * 1.3) * DPR, 0, 6.283); dctx.fill();
+    }
+    if (fine) {
+      spx += (px - spx) * .35; spy += (py - spy) * .35;
+      vel *= .92;
+      sig += ((inside ? signalAt(spx, spy) : 0) - sig) * .12;
+      latent.style.setProperty('--mx', spx + 'px'); latent.style.setProperty('--my', spy + 'px');
+      probe.style.transform = 'translate(' + (spx + 22) + 'px,' + (spy + 18) + 'px)';
+      probe.style.opacity = inside ? 1 : 0;
+      probe.style.setProperty('--sig', sig.toFixed(3));
+      // corona around the pointer: strands lengthen with signal and speed
+      sctx.clearRect(0,0,sensor.width,sensor.height);
+      if (inside) {
+        var N = 46, cx = spx*DPR, cy = spy*DPR, base = (14 + 30*sig + 16*vel) * DPR;
+        sctx.lineCap = 'round';
+        for (var k=0;k<N;k++){
+          var a = k / N * 6.283 + Math.sin(t*.7 + k)*.05;
+          var len = base * (.55 + .45*Math.abs(Math.sin(k*12.9898 + t*(1.3+sig*3))));
+          var r0 = 7 * DPR, bend = Math.sin(t*2.1 + k*1.7) * (.18 + sig*.25);
+          var x0 = cx + Math.cos(a)*r0, y0 = cy + Math.sin(a)*r0;
+          var x1 = cx + Math.cos(a+bend*.5)*(r0+len*.55), y1 = cy + Math.sin(a+bend*.5)*(r0+len*.55);
+          var x2 = cx + Math.cos(a+bend)*(r0+len), y2 = cy + Math.sin(a+bend)*(r0+len);
+          sctx.strokeStyle = k % 5 === 0 ? 'rgba(236,224,255,' + (.35+.4*sig) + ')' : 'rgba(199,102,255,' + (.25+.45*sig) + ')';
+          sctx.lineWidth = (k % 5 === 0 ? 1.1 : .7) * DPR;
+          sctx.beginPath(); sctx.moveTo(x0,y0); sctx.quadraticCurveTo(x1,y1,x2,y2); sctx.stroke();
+        }
+        sctx.strokeStyle = 'rgba(236,224,255,.55)'; sctx.lineWidth = 1*DPR;
+        sctx.beginPath(); sctx.arc(cx, cy, r0, 0, 6.283); sctx.stroke();
+      }
+    }
+    if (!document.hidden) requestAnimationFrame(frame); else setTimeout(function(){ requestAnimationFrame(frame); }, 300);
+  }
+  if (!reduce) requestAnimationFrame(frame);
+})();
+</script>
